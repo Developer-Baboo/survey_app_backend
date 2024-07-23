@@ -2,59 +2,51 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Role;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-
-class User extends Authenticatable
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens; // Include HasApiTokens trait
+class User extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $table = 'users';
+
     protected $fillable = [
-        'name',
+        'first_name',
+        'password',
+        'last_name',
+        'approved',
+        'referral_link',
+        'referral_share_count',
+        'current_survey_id',
+        'current_survey_deadline',
+        'unlocked_amount',
+        'language_id',
+        'city',
+        'phone_number',
+        'otp',
+        'otp_expiry',
         'email',
-        'password',
+        'provider',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function language()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Language::class);
     }
 
+    public function withdrawalRequests()
+    {
+        return $this->hasMany(WithdrawalRequest::class, 'surveyee_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class);
-    }
-
-    public function hasRole($role)
-    {
-        return $this->roles()->where('name', $role)->exists();
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
     }
 }
